@@ -1,7 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  allowedDevOrigins: ['peterson-iso-telecharger-latter.trycloudflare.com'],
 };
 
 export default nextConfig;
