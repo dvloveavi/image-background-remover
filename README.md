@@ -63,3 +63,4 @@ Sign up at [https://www.remove.bg/api](https://www.remove.bg/api) to get your AP
 ## License
 
 MIT
+
