@@ -1,20 +1,17 @@
-import type { NextConfig } from "next";
-
-const nextConfig: NextConfig = {
-  // 强制忽略 Node.js 模块在边缘运行时的 bundle
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  // 强制 Webpack 忽略服务器端的 Node.js 钩子
   webpack: (config, { isServer }) => {
     if (isServer) {
-      config.resolve.fallback = {
-        ...config.resolve.fallback,
+      config.resolve.alias = {
+        ...config.resolve.alias,
         async_hooks: false,
-        fs: false,
-        path: false,
       };
     }
     return config;
   },
+  // 禁用可能引起冲突的实验性功能
   experimental: {
-    // 确保没有开启 instrumentationHook
     instrumentationHook: false,
   },
 };
