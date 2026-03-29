@@ -1,13 +1,21 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // 告知 Next.js 不要将 async_hooks 打包进 Edge runtime
-  serverExternalPackages: ['async_hooks'],
+  // 强制忽略 Node.js 模块在边缘运行时的 bundle
   webpack: (config, { isServer }) => {
     if (isServer) {
-      config.externals = [...(config.externals || []), 'async_hooks'];
+      config.resolve.fallback = {
+        ...config.resolve.fallback,
+        async_hooks: false,
+        fs: false,
+        path: false,
+      };
     }
     return config;
+  },
+  experimental: {
+    // 确保没有开启 instrumentationHook
+    instrumentationHook: false,
   },
 };
 

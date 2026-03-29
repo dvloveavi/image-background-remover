@@ -1,43 +1,47 @@
 export const runtime = 'edge';
 
-import { NextRequest, NextResponse } from 'next/server';
-
-export async function POST(request: NextRequest) {
+export async function POST(req: Request) {
   try {
-    const { image } = await request.json();
+    const { image } = await req.json();
     const apiKey = process.env.REMOVE_BG_API_KEY;
 
     if (!image || !apiKey) {
-      return NextResponse.json({ error: 'Missing image or API key' }, { status: 400 });
+      return new Response(JSON.stringify({ error: 'Missing data' }), { status: 400 });
     }
 
-    // 1. 更稳健的 Base64 提取
-    const base64Str = image.includes(',') ? image.split(',')[1] : image;
-
-    // 2. 将 Base64 转为 Uint8Array（使用 Edge 通用方式）
-    const uint8Array = Uint8Array.from(atob(base64Str), c => c.charCodeAt(0));
+    // 纯 Web 标准的 Base64 转 Blob
+    const base64Str = image.split(',')[1] || image;
+    const byteCharacters = atob(base64Str);
+    const byteNumbers = new Array(byteCharacters.length);
+    for (let i = 0; i < byteCharacters.length; i++) {
+      byteNumbers[i] = byteCharacters.charCodeAt(i);
+    }
+    const byteArray = new Uint8Array(byteNumbers);
+    const blob = new Blob([byteArray], { type: 'image/png' });
 
     const formData = new FormData();
-    formData.append('image_file', new Blob([uint8Array]), 'image.png');
+    formData.append('image_file', blob, 'image.png');
     formData.append('size', 'auto');
 
-    const response = await fetch('https://api.remove.bg/v1.0/removebg', {
+    const res = await fetch('https://api.remove.bg/v1.0/removebg', {
       method: 'POST',
       headers: { 'X-Api-Key': apiKey },
       body: formData,
     });
 
-    if (!response.ok) {
-      return NextResponse.json({ error: 'API service error' }, { status: response.status });
-    }
+    if (!res.ok) throw new Error('API failed');
 
-    // 3. 将结果转回 Base64
-    const resultBuffer = await response.arrayBuffer();
-    const resultBase64 = btoa(String.fromCharCode(...new Uint8Array(resultBuffer)));
+    const arrayBuffer = await res.arrayBuffer();
 
-    return NextResponse.json({ result: resultBase64 });
-  } catch (error) {
-    console.error('Runtime Error:', error);
-    return NextResponse.json({ error: 'Server crashed' }, { status: 500 });
+    // 纯 Web 标准的 ArrayBuffer 转 Base64
+    const outputBase64 = btoa(
+      new Uint8Array(arrayBuffer).reduce((data, byte) => data + String.fromCharCode(byte), '')
+    );
+
+    return new Response(JSON.stringify({ result: outputBase64 }), {
+      headers: { 'Content-Type': 'application/json' },
+    });
+  } catch (err) {
+    return new Response(JSON.stringify({ error: 'Edge Runtime Error' }), { status: 500 });
   }
 }
