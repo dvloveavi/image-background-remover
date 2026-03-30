@@ -1,7 +1,10 @@
 import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
-  turbopack: {},
+  // Disable Turbopack for Cloudflare Pages compatibility
+  experimental: {
+    // Optional: disable if needed
+  },
 };
 
 export default nextConfig;
