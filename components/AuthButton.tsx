@@ -6,13 +6,25 @@ import { useEffect, useState } from 'react';
 export default function AuthButton() {
   const { data: session, status } = useSession();
   const [mounted, setMounted] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => setMounted(true), []);
+  useEffect(() => {
+    console.log('AuthButton mounted');
+    setMounted(true);
+  }, []);
 
-  if (!mounted) return null;
+  if (!mounted) {
+    return <span className="text-yellow-400 text-sm">⚡ Mounting...</span>;
+  }
+
+  if (error) {
+    return <span className="text-red-400 text-sm">Error: {error}</span>;
+  }
+
+  console.log('AuthButton render', { status, session });
 
   if (status === 'loading') {
-    return <span className="text-slate-400 text-sm">Loading...</span>;
+    return <span className="text-slate-400 text-sm">⏳ Loading...</span>;
   }
 
   if (session?.user) {
@@ -35,9 +47,9 @@ export default function AuthButton() {
   return (
     <button
       onClick={() => signIn('google')}
-      className="px-4 py-2 bg-white text-slate-900 rounded-lg hover:bg-slate-100 transition font-medium text-sm"
+      className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg transition font-medium text-sm"
     >
-      Sign in with Google
+      🔐 Sign in with Google
     </button>
   );
 }
