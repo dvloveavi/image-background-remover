@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef, useCallback } from 'react';
+import AuthButton from '@/components/AuthButton';
 
 export default function Home() {
   const [image, setImage] = useState<string | null>(null);
@@ -84,9 +85,10 @@ export default function Home() {
       <header className="py-6 px-4 border-b border-slate-700/50">
         <div className="max-w-4xl mx-auto flex items-center justify-between">
           <h1 className="text-2xl font-bold text-white">RemoveBG</h1>
-          <nav className="flex gap-4">
+          <nav className="flex gap-4 items-center">
             <a href="/about" className="text-slate-400 hover:text-white transition">About</a>
             <a href="/privacy" className="text-slate-400 hover:text-white transition">Privacy</a>
+            <AuthButton />
           </nav>
         </div>
       </header>
