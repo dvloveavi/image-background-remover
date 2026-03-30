@@ -19,7 +19,7 @@ interface D1Result {
   errors: string[];
 }
 
-async function d1Query(sql: string, params: string[] = []): Promise<unknown> {
+async function d1Query(sql: string, params: (string | null)[] = []): Promise<unknown> {
   const response = await fetch(
     `https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/d1/database/${D1_DATABASE_ID}/query`,
     {
