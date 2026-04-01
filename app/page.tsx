@@ -87,6 +87,8 @@ export default function Home() {
           <h1 className="text-2xl font-bold text-white">RemoveBG</h1>
           <nav className="flex gap-4 items-center">
             <a href="/about" className="text-slate-400 hover:text-white transition">About</a>
+            <a href="/pricing" className="text-slate-400 hover:text-white transition">Pricing</a>
+            <a href="/profile" className="text-slate-400 hover:text-white transition">Profile</a>
             <a href="/privacy" className="text-slate-400 hover:text-white transition">Privacy</a>
             <AuthButton />
           </nav>
