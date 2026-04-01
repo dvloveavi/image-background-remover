@@ -78,7 +78,7 @@ export default function PricingPage() {
                   <li>✓ Commercial use</li>
                 </ul>
                 <button className="w-full py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-lg transition font-medium">
-                  Payment Coming Soon
+                  Buy Now
                 </button>
               </div>
             ))}
@@ -113,7 +113,7 @@ export default function PricingPage() {
                   <li>✓ Cancel anytime</li>
                 </ul>
                 <button className="w-full py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-lg transition font-medium">
-                  Payment Coming Soon
+                  Subscribe Now
                 </button>
               </div>
             ))}
