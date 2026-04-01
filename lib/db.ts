@@ -14,6 +14,9 @@ interface D1Result {
     image: string | null;
     created_at: string;
     last_login: string;
+    credits: number;
+    preview_credits: number;
+    subscription_tier: string;
   }>;
   success: boolean;
   errors: string[];
@@ -69,4 +72,24 @@ export async function upsertUser(user: {
 
 export async function getAllUsers(): Promise<D1Result['results']> {
   return (await d1Query(`SELECT * FROM users ORDER BY created_at DESC`)) as D1Result['results'];
+}
+
+export async function getUserCredits(userId: string) {
+  const results = (await d1Query(
+    `SELECT credits, preview_credits, subscription_tier FROM users WHERE id = ? LIMIT 1`,
+    [userId]
+  )) as Array<{ credits: number; preview_credits: number; subscription_tier: string }>;
+  return results[0] || { credits: 0, preview_credits: 0, subscription_tier: 'free' };
+}
+
+export async function deductCredit(userId: string, type: 'hd' | 'preview') {
+  const field = type === 'hd' ? 'credits' : 'preview_credits';
+  await d1Query(`UPDATE users SET ${field} = ${field} - 1 WHERE id = ?`, [userId]);
+  
+  // Log usage
+  const logId = `${userId}-${Date.now()}`;
+  await d1Query(
+    `INSERT INTO usage_logs (id, user_id, action, image_type, created_at) VALUES (?, ?, 'remove_background', ?, datetime('now'))`,
+    [logId, userId, type]
+  );
 }
