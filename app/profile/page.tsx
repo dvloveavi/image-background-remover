@@ -2,6 +2,8 @@ import { auth } from '@/auth';
 import { redirect } from 'next/navigation';
 import { getUserCredits } from '@/lib/db';
 
+export const runtime = 'edge';
+
 export default async function ProfilePage() {
   const session = await auth();
   
