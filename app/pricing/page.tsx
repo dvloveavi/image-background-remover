@@ -2,8 +2,10 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { useSession, signIn } from 'next-auth/react';
 
 export default function PricingPage() {
+  const { data: session } = useSession();
   const [mode, setMode] = useState<'credits' | 'subscription'>('credits');
   const [loadingId, setLoadingId] = useState<string | null>(null);
 
@@ -19,6 +21,10 @@ export default function PricingPage() {
   ];
 
   async function handleBuyCredits(packageId: string) {
+    if (!session) {
+      signIn('google');
+      return;
+    }
     setLoadingId(packageId);
     try {
       const res = await fetch('/api/paypal/create-order', {
@@ -40,6 +46,10 @@ export default function PricingPage() {
   }
 
   async function handleSubscribe(planKey: string) {
+    if (!session) {
+      signIn('google');
+      return;
+    }
     setLoadingId(`sub_${planKey}`);
     try {
       const res = await fetch('/api/paypal/create-subscription', {
