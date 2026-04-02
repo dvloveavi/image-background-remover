@@ -3,13 +3,12 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { captureOrder, getOrder } from '@/lib/paypal';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+import { auth } from '@/auth';
 import { addCreditsToUser, recordPayment } from '@/lib/db';
 
 export async function POST(req: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
+    const session = await auth();
     if (!session?.user?.email) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
