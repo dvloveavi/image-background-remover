@@ -93,3 +93,62 @@ export async function deductCredit(userId: string, type: 'hd' | 'preview') {
     [logId, userId, type]
   );
 }
+
+// ─── PayPal / Credits ─────────────────────────────────────────────────────────
+
+export async function addCreditsToUser(email: string, credits: number): Promise<boolean> {
+  await d1Query(
+    `UPDATE users SET credits = credits + ? WHERE email = ?`,
+    [String(credits), email]
+  );
+  return true;
+}
+
+export async function updateUserSubscription(
+  email: string,
+  opts: { subscriptionId: string; planId: string; status: 'active' | 'cancelled' }
+): Promise<boolean> {
+  const tier = opts.status === 'active'
+    ? (opts.planId === (process.env.PAYPAL_PLAN_PRO_ID || '') ? 'pro' : 'basic')
+    : 'free';
+
+  await d1Query(
+    `UPDATE users SET subscription_tier = ?, paypal_subscription_id = ?, subscription_status = ? WHERE email = ?`,
+    [tier, opts.subscriptionId, opts.status, email]
+  );
+  return true;
+}
+
+export async function recordPayment(opts: {
+  userId: string;
+  paypalOrderId: string;
+  amount?: string;
+  currency?: string;
+  type: 'one_time' | 'subscription' | 'subscription_renewal';
+  credits: number;
+  status: string;
+}): Promise<boolean> {
+  const id = `pay_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+  await d1Query(
+    `INSERT INTO payments (id, user_id, paypal_order_id, amount, currency, type, credits, status, created_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))`,
+    [
+      id,
+      opts.userId,
+      opts.paypalOrderId,
+      opts.amount || '0',
+      opts.currency || 'USD',
+      opts.type,
+      String(opts.credits),
+      opts.status,
+    ]
+  );
+  return true;
+}
+
+export async function getUserPayments(email: string) {
+  return d1Query(
+    `SELECT * FROM payments WHERE user_id = ? ORDER BY created_at DESC LIMIT 50`,
+    [email]
+  );
+}

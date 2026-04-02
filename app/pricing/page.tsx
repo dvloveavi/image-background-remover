@@ -4,17 +4,60 @@ import { useState } from 'react';
 
 export default function PricingPage() {
   const [mode, setMode] = useState<'credits' | 'subscription'>('credits');
+  const [loadingId, setLoadingId] = useState<string | null>(null);
 
   const creditPackages = [
-    { name: 'Starter', price: 4.99, credits: 10, popular: false },
-    { name: 'Popular', price: 12.99, credits: 30, popular: true },
-    { name: 'Pro Pack', price: 29.99, credits: 80, popular: false },
+    { id: 'starter', name: 'Starter', price: 4.99, credits: 10, popular: false },
+    { id: 'popular', name: 'Popular', price: 12.99, credits: 30, popular: true },
+    { id: 'pro', name: 'Pro Pack', price: 29.99, credits: 80, popular: false },
   ];
 
   const subscriptions = [
-    { name: 'Basic', price: 9.99, credits: 25, popular: false },
-    { name: 'Pro', price: 19.99, credits: 60, popular: true },
+    { id: 'basic', name: 'Basic', price: 9.99, credits: 25, popular: false },
+    { id: 'pro', name: 'Pro', price: 19.99, credits: 60, popular: true },
   ];
+
+  async function handleBuyCredits(packageId: string) {
+    setLoadingId(packageId);
+    try {
+      const res = await fetch('/api/paypal/create-order', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ packageId }),
+      });
+      const data = await res.json();
+      if (data.approveUrl) {
+        window.location.href = data.approveUrl;
+      } else {
+        alert(data.error || 'Failed to start payment');
+      }
+    } catch {
+      alert('Network error, please try again.');
+    } finally {
+      setLoadingId(null);
+    }
+  }
+
+  async function handleSubscribe(planKey: string) {
+    setLoadingId(`sub_${planKey}`);
+    try {
+      const res = await fetch('/api/paypal/create-subscription', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ planKey }),
+      });
+      const data = await res.json();
+      if (data.approveUrl) {
+        window.location.href = data.approveUrl;
+      } else {
+        alert(data.error || 'Failed to start subscription');
+      }
+    } catch {
+      alert('Network error, please try again.');
+    } finally {
+      setLoadingId(null);
+    }
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
@@ -77,8 +120,21 @@ export default function PricingPage() {
                   <li>✓ HD quality output</li>
                   <li>✓ Commercial use</li>
                 </ul>
-                <button className="w-full py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-lg transition font-medium">
-                  Buy Now
+                <button
+                  onClick={() => handleBuyCredits(pkg.id)}
+                  disabled={loadingId === pkg.id}
+                  className="w-full py-3 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 disabled:cursor-wait text-white rounded-lg transition font-medium flex items-center justify-center gap-2"
+                >
+                  {loadingId === pkg.id ? (
+                    <>
+                      <span className="animate-spin">⏳</span> Redirecting...
+                    </>
+                  ) : (
+                    <>
+                      <img src="https://www.paypalobjects.com/webstatic/icon/pp258.png" alt="PayPal" className="h-4 w-4" />
+                      Buy Now
+                    </>
+                  )}
                 </button>
               </div>
             ))}
@@ -107,16 +163,36 @@ export default function PricingPage() {
                 </div>
                 <p className="text-slate-400 mb-6">{sub.credits} credits per month</p>
                 <ul className="space-y-2 mb-6 text-sm text-slate-300">
-                  <li>✓ Monthly credits</li>
+                  <li>✓ Monthly credits auto-renewed</li>
                   <li>✓ HD quality output</li>
                   <li>✓ Commercial use</li>
                   <li>✓ Cancel anytime</li>
                 </ul>
-                <button className="w-full py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-lg transition font-medium">
-                  Subscribe Now
+                <button
+                  onClick={() => handleSubscribe(sub.id)}
+                  disabled={loadingId === `sub_${sub.id}`}
+                  className="w-full py-3 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 disabled:cursor-wait text-white rounded-lg transition font-medium flex items-center justify-center gap-2"
+                >
+                  {loadingId === `sub_${sub.id}` ? (
+                    <>
+                      <span className="animate-spin">⏳</span> Redirecting...
+                    </>
+                  ) : (
+                    <>
+                      <img src="https://www.paypalobjects.com/webstatic/icon/pp258.png" alt="PayPal" className="h-4 w-4" />
+                      Subscribe Now
+                    </>
+                  )}
                 </button>
               </div>
             ))}
+          </div>
+        )}
+
+        {/* Sandbox notice */}
+        {process.env.NODE_ENV !== 'production' && (
+          <div className="mt-8 text-center text-xs text-yellow-500/70 bg-yellow-900/20 border border-yellow-800/30 rounded-lg py-2 px-4 max-w-sm mx-auto">
+            🧪 Sandbox mode — use PayPal sandbox accounts to test
           </div>
         )}
 
