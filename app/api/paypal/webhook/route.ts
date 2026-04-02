@@ -5,6 +5,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { verifyWebhookSignature, getSubscription } from '@/lib/paypal';
 import { addCreditsToUser, updateUserSubscription, recordPayment } from '@/lib/db';
 
+export const runtime = 'edge';
+
 // Credits granted per plan per billing cycle
 const PLAN_CREDITS: Record<string, number> = {
   'P-39Y09994U2576181GNHHFZBY': 25, // Basic

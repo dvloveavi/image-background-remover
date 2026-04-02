@@ -6,6 +6,8 @@ import { captureOrder, getOrder } from '@/lib/paypal';
 import { auth } from '@/auth';
 import { addCreditsToUser, recordPayment } from '@/lib/db';
 
+export const runtime = 'edge';
+
 export async function POST(req: NextRequest) {
   try {
     const session = await auth();

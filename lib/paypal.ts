@@ -17,7 +17,7 @@ export async function getAccessToken(): Promise<string> {
     return cachedToken.token;
   }
 
-  const credentials = Buffer.from(`${CLIENT_ID}:${CLIENT_SECRET}`).toString('base64');
+  const credentials = btoa(`${CLIENT_ID}:${CLIENT_SECRET}`);
 
   const res = await fetch(`${PAYPAL_BASE_URL}/v1/oauth2/token`, {
     method: 'POST',

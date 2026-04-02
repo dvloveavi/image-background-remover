@@ -5,6 +5,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createOrder } from '@/lib/paypal';
 import { auth } from '@/auth';
 
+export const runtime = 'edge';
+
 // Credit packages config (must match pricing page)
 const CREDIT_PACKAGES: Record<string, { name: string; price: string; credits: number }> = {
   starter: { name: 'Starter', price: '4.99', credits: 10 },

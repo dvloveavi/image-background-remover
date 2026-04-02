@@ -5,6 +5,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createSubscription } from '@/lib/paypal';
 import { auth } from '@/auth';
 
+export const runtime = 'edge';
+
 // Subscription plans — Plan IDs must be created in PayPal dashboard (or via API)
 // Set these in .env: PAYPAL_PLAN_BASIC_ID, PAYPAL_PLAN_PRO_ID
 const SUBSCRIPTION_PLANS: Record<string, { planId: string; credits: number; name: string }> = {
