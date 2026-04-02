@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 
 export default function PricingPage() {
   const [mode, setMode] = useState<'credits' | 'subscription'>('credits');
@@ -63,7 +64,7 @@ export default function PricingPage() {
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
       <header className="py-6 px-4 border-b border-slate-700/50">
         <div className="max-w-6xl mx-auto">
-          <a href="/" className="text-slate-400 hover:text-white">← Back to Home</a>
+          <Link href="/" className="text-slate-400 hover:text-white">← Back to Home</Link>
         </div>
       </header>
 
@@ -197,9 +198,9 @@ export default function PricingPage() {
         )}
 
         <div className="text-center mt-12">
-          <a href="/" className="text-blue-400 hover:text-blue-300">
+          <Link href="/" className="text-blue-400 hover:text-blue-300">
             Try for Free →
-          </a>
+          </Link>
         </div>
       </main>
     </div>

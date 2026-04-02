@@ -6,22 +6,14 @@ import { useEffect, useState } from 'react';
 export default function AuthButton() {
   const { data: session, status } = useSession();
   const [mounted, setMounted] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    console.log('AuthButton mounted');
     setMounted(true);
   }, []);
 
   if (!mounted) {
     return <span className="text-yellow-400 text-sm">⚡ Mounting...</span>;
   }
-
-  if (error) {
-    return <span className="text-red-400 text-sm">Error: {error}</span>;
-  }
-
-  console.log('AuthButton render', { status, session });
 
   if (status === 'loading') {
     return <span className="text-slate-400 text-sm">⏳ Loading...</span>;

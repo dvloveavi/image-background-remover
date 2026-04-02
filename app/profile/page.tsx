@@ -1,6 +1,7 @@
 import { auth } from '@/auth';
 import { redirect } from 'next/navigation';
 import { getUserCredits } from '@/lib/db';
+import Link from 'next/link';
 
 export const runtime = 'edge';
 
@@ -17,7 +18,7 @@ export default async function ProfilePage() {
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
       <header className="py-6 px-4 border-b border-slate-700/50">
         <div className="max-w-4xl mx-auto">
-          <a href="/" className="text-slate-400 hover:text-white">← Back to Home</a>
+          <Link href="/" className="text-slate-400 hover:text-white">← Back to Home</Link>
         </div>
       </header>
 
@@ -68,12 +69,12 @@ export default async function ProfilePage() {
                 </div>
               </div>
             </div>
-            <a 
+            <Link 
               href="/pricing"
               className="mt-4 block w-full py-2 bg-blue-600 hover:bg-blue-500 text-white text-center rounded-lg transition font-medium"
             >
               Buy More Credits
-            </a>
+            </Link>
           </div>
         </div>
 

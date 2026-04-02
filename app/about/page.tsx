@@ -31,7 +31,7 @@ export default function About() {
             <h2 className="text-2xl font-semibold text-white mb-4">How It Works</h2>
             <ol className="list-decimal list-inside space-y-2">
               <li>Upload your image (JPG, PNG, or WebP)</li>
-              <li>Click the "Remove Background" button</li>
+              <li>Click the &quot;Remove Background&quot; button</li>
               <li>Download your image with a transparent background</li>
             </ol>
           </section>

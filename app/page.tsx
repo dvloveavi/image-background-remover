@@ -1,5 +1,7 @@
 'use client';
 
+import Link from 'next/link';
+
 import { useState, useRef, useCallback } from 'react';
 import AuthButton from '@/components/AuthButton';
 
@@ -86,10 +88,10 @@ export default function Home() {
         <div className="max-w-4xl mx-auto flex items-center justify-between">
           <h1 className="text-2xl font-bold text-white">RemoveBG</h1>
           <nav className="flex gap-4 items-center">
-            <a href="/about" className="text-slate-400 hover:text-white transition">About</a>
-            <a href="/pricing" className="text-slate-400 hover:text-white transition">Pricing</a>
-            <a href="/profile" className="text-slate-400 hover:text-white transition">Profile</a>
-            <a href="/privacy" className="text-slate-400 hover:text-white transition">Privacy</a>
+            <Link href="/about" className="text-slate-400 hover:text-white transition">About</Link>
+            <Link href="/pricing" className="text-slate-400 hover:text-white transition">Pricing</Link>
+            <Link href="/profile" className="text-slate-400 hover:text-white transition">Profile</Link>
+            <Link href="/privacy" className="text-slate-400 hover:text-white transition">Privacy</Link>
             <AuthButton />
           </nav>
         </div>

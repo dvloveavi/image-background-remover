@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState, Suspense } from 'react';
+import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 
 function PaymentSuccessContent() {
@@ -60,12 +61,12 @@ function PaymentSuccessContent() {
             <div className="text-5xl mb-4">✅</div>
             <h1 className="text-2xl font-bold text-white mb-3">Payment Confirmed</h1>
             <p className="text-slate-300 mb-6">{message}</p>
-            <a
+            <Link
               href="/"
               className="inline-block px-6 py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-lg transition font-medium"
             >
               Start Removing Backgrounds
-            </a>
+            </Link>
           </>
         )}
         {status === 'error' && (
@@ -73,12 +74,12 @@ function PaymentSuccessContent() {
             <div className="text-5xl mb-4">❌</div>
             <h1 className="text-2xl font-bold text-white mb-3">Something went wrong</h1>
             <p className="text-slate-300 mb-6">{message}</p>
-            <a
+            <Link
               href="/pricing"
               className="inline-block px-6 py-3 bg-slate-600 hover:bg-slate-500 text-white rounded-lg transition font-medium"
             >
               Back to Pricing
-            </a>
+            </Link>
           </>
         )}
       </div>
