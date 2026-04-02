@@ -7,8 +7,10 @@ import { addCreditsToUser, updateUserSubscription, recordPayment } from '@/lib/d
 
 // Credits granted per plan per billing cycle
 const PLAN_CREDITS: Record<string, number> = {
-  [process.env.PAYPAL_PLAN_BASIC_ID || 'basic']: 25,
-  [process.env.PAYPAL_PLAN_PRO_ID || 'pro']: 60,
+  'P-39Y09994U2576181GNHHFZBY': 25, // Basic
+  'P-0D526425ND627542XNHHFZGI': 60, // Pro
+  [process.env.PAYPAL_PLAN_BASIC_ID || '']: 25,
+  [process.env.PAYPAL_PLAN_PRO_ID || '']: 60,
 };
 
 export async function POST(req: NextRequest) {

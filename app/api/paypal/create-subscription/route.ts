@@ -10,12 +10,12 @@ import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 // Set these in .env: PAYPAL_PLAN_BASIC_ID, PAYPAL_PLAN_PRO_ID
 const SUBSCRIPTION_PLANS: Record<string, { planId: string; credits: number; name: string }> = {
   basic: {
-    planId: process.env.PAYPAL_PLAN_BASIC_ID || '',
+    planId: process.env.PAYPAL_PLAN_BASIC_ID || 'P-39Y09994U2576181GNHHFZBY',
     credits: 25,
     name: 'Basic',
   },
   pro: {
-    planId: process.env.PAYPAL_PLAN_PRO_ID || '',
+    planId: process.env.PAYPAL_PLAN_PRO_ID || 'P-0D526425ND627542XNHHFZGI',
     credits: 60,
     name: 'Pro',
   },
