@@ -2,8 +2,7 @@
 // Uses Cloudflare REST API to query D1
 
 const CLOUDFLARE_ACCOUNT_ID = process.env.CLOUDFLARE_ACCOUNT_ID!;
-const CLOUDFLARE_API_KEY = process.env.CLOUDFLARE_API_KEY!;
-const CLOUDFLARE_API_EMAIL = process.env.CLOUDFLARE_API_EMAIL!;
+const CLOUDFLARE_API_TOKEN = process.env.CLOUDFLARE_API_TOKEN!;
 const D1_DATABASE_ID = process.env.D1_DATABASE_ID!;
 
 interface D1Result {
@@ -28,8 +27,7 @@ async function d1Query(sql: string, params: (string | null)[] = []): Promise<unk
     {
       method: 'POST',
       headers: {
-        'X-Auth-Key': CLOUDFLARE_API_KEY,
-        'X-Auth-Email': CLOUDFLARE_API_EMAIL,
+        'Authorization': `Bearer ${CLOUDFLARE_API_TOKEN}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({ sql, params }),
