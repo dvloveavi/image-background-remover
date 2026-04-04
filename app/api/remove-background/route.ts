@@ -1,26 +1,51 @@
 export const runtime = 'edge';
 
+import { auth } from '@/auth';
+import { deductCredit, getUserCredits } from '@/lib/db';
+
 export async function POST(req: Request) {
   try {
+    // ── Auth check ──────────────────────────────────────────────────────────
+    const session = await auth();
+    if (!session?.user?.id) {
+      return new Response(JSON.stringify({ error: 'Unauthorized', code: 'AUTH_REQUIRED' }), {
+        status: 401,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+
+    // ── Credits check ────────────────────────────────────────────────────────
+    const credits = await getUserCredits(session.user.id);
+    if (credits.credits <= 0 && credits.preview_credits <= 0) {
+      return new Response(
+        JSON.stringify({ error: 'Insufficient credits', code: 'NO_CREDITS' }),
+        { status: 402, headers: { 'Content-Type': 'application/json' } }
+      );
+    }
+
     const { image } = await req.json();
     const apiKey = process.env.REMOVE_BG_API_KEY;
 
     if (!image || !apiKey) {
-      return new Response(JSON.stringify({ error: 'Missing Data' }), { status: 400 });
+      return new Response(JSON.stringify({ error: 'Missing data' }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' },
+      });
     }
 
-    // 处理 Base64
-    const base64Data = image.includes(',') ? image.split(',')[1] : image;
+    // ── Decide credit type: HD credits first, fallback to preview ────────────
+    const useHD = credits.credits > 0;
+    const creditType = useHD ? 'hd' : 'preview';
 
-    // 1. 将 Base64 转为 Blob (使用现代 Web 方式)
+    // ── Call Remove.bg API ───────────────────────────────────────────────────
+    const base64Data = image.includes(',') ? image.split(',')[1] : image;
     const byteCharacters = Uint8Array.from(atob(base64Data), c => c.charCodeAt(0));
     const imageBlob = new Blob([byteCharacters], { type: 'image/png' });
 
     const formData = new FormData();
     formData.append('image_file', imageBlob, 'image.png');
-    formData.append('size', 'auto');
+    formData.append('size', useHD ? 'auto' : 'preview');
 
-    // 2. 发送请求
     const response = await fetch('https://api.remove.bg/v1.0/removebg', {
       method: 'POST',
       headers: { 'X-Api-Key': apiKey },
@@ -28,21 +53,37 @@ export async function POST(req: Request) {
     });
 
     if (!response.ok) {
-      return new Response(JSON.stringify({ error: 'API Error' }), { status: response.status });
+      const errText = await response.text();
+      console.error('[remove-bg] API error:', errText);
+      return new Response(
+        JSON.stringify({ error: 'Background removal failed', detail: errText }),
+        { status: response.status, headers: { 'Content-Type': 'application/json' } }
+      );
     }
 
-    // 3. 将结果转回 Base64
+    // ── Deduct credit after successful processing ────────────────────────────
+    await deductCredit(session.user.id, creditType);
+
+    // ── Return result ────────────────────────────────────────────────────────
     const arrayBuffer = await response.arrayBuffer();
     const uint8Array = new Uint8Array(arrayBuffer);
     let binary = '';
-    uint8Array.forEach(b => binary += String.fromCharCode(b));
+    uint8Array.forEach(b => (binary += String.fromCharCode(b)));
     const resultBase64 = btoa(binary);
 
-    return new Response(JSON.stringify({ result: resultBase64 }), {
+    return new Response(
+      JSON.stringify({
+        result: resultBase64,
+        creditsUsed: creditType,
+        creditsRemaining: useHD ? credits.credits - 1 : credits.credits,
+      }),
+      { headers: { 'Content-Type': 'application/json' } }
+    );
+  } catch (error) {
+    console.error('[remove-bg] Runtime error:', error);
+    return new Response(JSON.stringify({ error: 'Internal server error' }), {
+      status: 500,
       headers: { 'Content-Type': 'application/json' },
     });
-  } catch (error) {
-    console.error('Edge error:', error);
-    return new Response(JSON.stringify({ error: 'Runtime Crash' }), { status: 500 });
   }
 }

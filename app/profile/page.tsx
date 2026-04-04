@@ -44,7 +44,7 @@ export default async function ProfilePage() {
             <h2 className="text-sm font-semibold uppercase tracking-wider mb-5" style={{ color: 'rgba(150,150,180,0.5)' }}>Profile</h2>
             <div className="flex items-center gap-4">
               {session.user.image ? (
-                <img src={session.user.image} alt="" className="w-14 h-14 rounded-2xl ring-2" style={{ ringColor: 'rgba(124,58,237,0.4)' }} />
+                <img src={session.user.image} alt="" className="w-14 h-14 rounded-2xl" style={{ border: '2px solid rgba(124,58,237,0.4)' }} />
               ) : (
                 <div className="w-14 h-14 rounded-2xl flex items-center justify-center text-xl font-bold"
                   style={{ background: 'linear-gradient(135deg, #7c3aed, #2563eb)', color: '#fff' }}>

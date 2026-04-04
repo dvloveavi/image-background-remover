@@ -2,26 +2,33 @@
 
 import Link from 'next/link';
 import { useState, useRef, useCallback } from 'react';
+import { useSession, signIn } from 'next-auth/react';
 import AuthButton from '@/components/AuthButton';
 
 export default function Home() {
+  const { data: session } = useSession();
   const [image, setImage] = useState<string | null>(null);
   const [originalImage, setOriginalImage] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [errorCode, setErrorCode] = useState<string | null>(null);
   const [dragOver, setDragOver] = useState(false);
+  const [creditsRemaining, setCreditsRemaining] = useState<number | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFile = useCallback((file: File) => {
     if (!file.type.startsWith('image/')) {
       setError('Please upload an image file (JPG, PNG, WebP)');
+      setErrorCode(null);
       return;
     }
     if (file.size > 10 * 1024 * 1024) {
       setError('File size must be less than 10MB');
+      setErrorCode(null);
       return;
     }
     setError(null);
+    setErrorCode(null);
     const reader = new FileReader();
     reader.onload = (e) => {
       const result = e.target?.result as string;
@@ -45,20 +52,34 @@ export default function Home() {
 
   const removeBackground = async () => {
     if (!originalImage) return;
+
+    // Prompt login if not authenticated
+    if (!session?.user) {
+      signIn('google');
+      return;
+    }
+
     setLoading(true);
     setError(null);
+    setErrorCode(null);
     try {
       const response = await fetch('/api/remove-background', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ image: originalImage }),
       });
+
+      const data = await response.json();
+
       if (!response.ok) {
-        const data = await response.json();
+        setErrorCode(data.code || null);
         throw new Error(data.error || 'Failed to remove background');
       }
-      const data = await response.json();
+
       setImage(`data:image/png;base64,${data.result}`);
+      if (data.creditsRemaining !== undefined) {
+        setCreditsRemaining(data.creditsRemaining);
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Something went wrong');
     } finally {
@@ -78,12 +99,14 @@ export default function Home() {
     setImage(null);
     setOriginalImage(null);
     setError(null);
+    setErrorCode(null);
+    setCreditsRemaining(null);
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
   return (
     <div className="min-h-screen" style={{ background: 'linear-gradient(135deg, #0a0a0f 0%, #0f0a1e 40%, #0a0f1e 70%, #0a0a0f 100%)' }}>
-      {/* Ambient background orbs */}
+      {/* Ambient orbs */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <div className="absolute -top-40 -left-40 w-96 h-96 rounded-full opacity-20" style={{ background: 'radial-gradient(circle, #7c3aed, transparent 70%)' }} />
         <div className="absolute -top-20 right-20 w-80 h-80 rounded-full opacity-15" style={{ background: 'radial-gradient(circle, #2563eb, transparent 70%)' }} />
@@ -94,9 +117,7 @@ export default function Home() {
       <header className="relative z-10 py-4 px-6 border-b" style={{ borderColor: 'rgba(255,255,255,0.06)', backdropFilter: 'blur(12px)', background: 'rgba(10,10,15,0.6)' }}>
         <div className="max-w-5xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold" style={{ background: 'linear-gradient(135deg, #7c3aed, #2563eb)' }}>
-              ✂️
-            </div>
+            <div className="w-8 h-8 rounded-lg flex items-center justify-center text-sm" style={{ background: 'linear-gradient(135deg, #7c3aed, #2563eb)' }}>✂️</div>
             <span className="text-lg font-bold text-white">RemoveBG</span>
           </div>
           <nav className="flex gap-1 items-center">
@@ -106,20 +127,11 @@ export default function Home() {
               { href: '/profile', label: 'Profile' },
               { href: '/privacy', label: 'Privacy' },
             ].map(({ href, label }) => (
-              <Link
-                key={href}
-                href={href}
-                className="px-3 py-1.5 rounded-lg text-sm transition-all"
-                style={{ color: 'rgba(200,200,220,0.7)' }}
-                onMouseEnter={e => { (e.target as HTMLElement).style.color = '#fff'; (e.target as HTMLElement).style.background = 'rgba(255,255,255,0.07)'; }}
-                onMouseLeave={e => { (e.target as HTMLElement).style.color = 'rgba(200,200,220,0.7)'; (e.target as HTMLElement).style.background = 'transparent'; }}
-              >
+              <Link key={href} href={href} className="px-3 py-1.5 rounded-lg text-sm transition-all" style={{ color: 'rgba(200,200,220,0.7)' }}>
                 {label}
               </Link>
             ))}
-            <div className="ml-2">
-              <AuthButton />
-            </div>
+            <div className="ml-2"><AuthButton /></div>
           </nav>
         </div>
       </header>
@@ -140,7 +152,6 @@ export default function Home() {
             Upload your image and get a clean, transparent background in seconds — no design skills needed.
           </p>
 
-          {/* Stats row */}
           {!image && (
             <div className="flex justify-center gap-8 mt-8">
               {[
@@ -157,6 +168,17 @@ export default function Home() {
           )}
         </div>
 
+        {/* Credits remaining banner */}
+        {creditsRemaining !== null && creditsRemaining <= 3 && (
+          <div className="mb-6 p-3 rounded-xl flex items-center justify-between text-sm"
+            style={{ background: 'rgba(234,179,8,0.08)', border: '1px solid rgba(234,179,8,0.2)', color: '#fbbf24' }}>
+            <span>⚠️ Only {creditsRemaining} HD credit{creditsRemaining !== 1 ? 's' : ''} remaining</span>
+            <Link href="/pricing" className="px-3 py-1 rounded-lg text-xs font-medium" style={{ background: 'rgba(234,179,8,0.15)', color: '#fbbf24' }}>
+              Buy More →
+            </Link>
+          </div>
+        )}
+
         {/* Upload / Result area */}
         {!image ? (
           <div
@@ -171,11 +193,9 @@ export default function Home() {
               boxShadow: dragOver ? '0 0 40px rgba(124,58,237,0.2)' : 'none',
             }}
           >
-            {/* Decorative corner dots */}
             {['top-3 left-3', 'top-3 right-3', 'bottom-3 left-3', 'bottom-3 right-3'].map(pos => (
               <div key={pos} className={`absolute ${pos} w-2 h-2 rounded-full`} style={{ background: dragOver ? '#7c3aed' : 'rgba(255,255,255,0.15)' }} />
             ))}
-
             <div className="relative">
               <div className="w-20 h-20 mx-auto mb-5 rounded-2xl flex items-center justify-center text-4xl"
                 style={{ background: 'linear-gradient(135deg, rgba(124,58,237,0.2), rgba(37,99,235,0.2))', border: '1px solid rgba(124,58,237,0.3)' }}>
@@ -183,22 +203,13 @@ export default function Home() {
               </div>
               <p className="text-xl font-semibold text-white mb-2">Drop your image here</p>
               <p className="text-sm mb-6" style={{ color: 'rgba(160,160,190,0.6)' }}>or click to browse files</p>
-
-              <div className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-medium transition-all"
+              <div className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-medium"
                 style={{ background: 'linear-gradient(135deg, #7c3aed, #2563eb)', color: '#fff', boxShadow: '0 4px 20px rgba(124,58,237,0.3)' }}>
                 Choose File
               </div>
-
               <p className="text-xs mt-5" style={{ color: 'rgba(130,130,160,0.5)' }}>Supports JPG, PNG, WebP · Max 10MB</p>
             </div>
-
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/jpeg,image/png,image/webp"
-              onChange={handleChange}
-              className="hidden"
-            />
+            <input ref={fileInputRef} type="file" accept="image/jpeg,image/png,image/webp" onChange={handleChange} className="hidden" />
           </div>
         ) : (
           <div className="grid md:grid-cols-2 gap-6">
@@ -209,15 +220,12 @@ export default function Home() {
                   <div className="w-2 h-2 rounded-full bg-yellow-400" />
                   <span className="text-sm font-medium" style={{ color: 'rgba(200,200,220,0.8)' }}>Original</span>
                 </div>
-                <button
-                  onClick={reset}
-                  className="text-xs px-3 py-1 rounded-lg transition-all"
-                  style={{ color: '#f87171', background: 'rgba(248,113,113,0.1)', border: '1px solid rgba(248,113,113,0.2)' }}
-                >
+                <button onClick={reset} className="text-xs px-3 py-1 rounded-lg transition-all"
+                  style={{ color: '#f87171', background: 'rgba(248,113,113,0.1)', border: '1px solid rgba(248,113,113,0.2)' }}>
                   × Remove
                 </button>
               </div>
-              <div className="p-4 flex items-center justify-center min-h-64 rounded-b-2xl" style={{ background: 'rgba(0,0,0,0.2)' }}>
+              <div className="p-4 flex items-center justify-center min-h-64" style={{ background: 'rgba(0,0,0,0.2)' }}>
                 <img src={originalImage!} alt="Original" className="max-w-full max-h-72 object-contain rounded-lg" />
               </div>
             </div>
@@ -230,27 +238,43 @@ export default function Home() {
                   <span className="text-sm font-medium" style={{ color: 'rgba(200,200,220,0.8)' }}>Result</span>
                 </div>
                 {image !== originalImage && (
-                  <button
-                    onClick={downloadResult}
-                    className="text-xs px-3 py-1 rounded-lg transition-all font-medium"
-                    style={{ color: '#34d399', background: 'rgba(52,211,153,0.1)', border: '1px solid rgba(52,211,153,0.25)' }}
-                  >
+                  <button onClick={downloadResult} className="text-xs px-3 py-1 rounded-lg transition-all font-medium"
+                    style={{ color: '#34d399', background: 'rgba(52,211,153,0.1)', border: '1px solid rgba(52,211,153,0.25)' }}>
                     ↓ Download PNG
                   </button>
                 )}
               </div>
-              <div className="p-4 flex items-center justify-center min-h-64 rounded-b-2xl checkerboard">
+              <div className="p-4 flex items-center justify-center min-h-64 checkerboard">
                 <img src={image!} alt="Result" className="max-w-full max-h-72 object-contain rounded-lg" />
               </div>
             </div>
           </div>
         )}
 
-        {/* Error */}
+        {/* Error messages */}
         {error && (
-          <div className="mt-6 p-4 rounded-xl text-center text-sm"
-            style={{ background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)', color: '#f87171' }}>
-            ⚠️ {error}
+          <div className="mt-6 rounded-xl overflow-hidden" style={{ border: '1px solid rgba(239,68,68,0.2)' }}>
+            <div className="p-4 text-sm text-center" style={{ background: 'rgba(239,68,68,0.08)', color: '#f87171' }}>
+              ⚠️ {error}
+            </div>
+            {errorCode === 'NO_CREDITS' && (
+              <div className="px-4 py-3 flex items-center justify-between" style={{ background: 'rgba(239,68,68,0.05)', borderTop: '1px solid rgba(239,68,68,0.1)' }}>
+                <span className="text-xs" style={{ color: 'rgba(248,113,113,0.8)' }}>Purchase credits to continue processing images</span>
+                <Link href="/pricing" className="text-xs px-3 py-1.5 rounded-lg font-medium transition-all"
+                  style={{ background: 'linear-gradient(135deg, #7c3aed, #2563eb)', color: '#fff' }}>
+                  View Pricing →
+                </Link>
+              </div>
+            )}
+            {errorCode === 'AUTH_REQUIRED' && (
+              <div className="px-4 py-3 flex items-center justify-between" style={{ background: 'rgba(239,68,68,0.05)', borderTop: '1px solid rgba(239,68,68,0.1)' }}>
+                <span className="text-xs" style={{ color: 'rgba(248,113,113,0.8)' }}>Sign in to start removing backgrounds</span>
+                <button onClick={() => signIn('google')} className="text-xs px-3 py-1.5 rounded-lg font-medium"
+                  style={{ background: 'linear-gradient(135deg, #7c3aed, #2563eb)', color: '#fff' }}>
+                  Sign in with Google →
+                </button>
+              </div>
+            )}
           </div>
         )}
 
@@ -265,11 +289,8 @@ export default function Home() {
                 background: loading || image !== originalImage
                   ? 'rgba(80,80,100,0.5)'
                   : 'linear-gradient(135deg, #7c3aed 0%, #2563eb 100%)',
-                boxShadow: loading || image !== originalImage
-                  ? 'none'
-                  : '0 4px 30px rgba(124,58,237,0.4)',
+                boxShadow: loading || image !== originalImage ? 'none' : '0 4px 30px rgba(124,58,237,0.4)',
                 cursor: loading || image !== originalImage ? 'not-allowed' : 'pointer',
-                transform: loading || image !== originalImage ? 'none' : undefined,
               }}
             >
               {loading ? (
@@ -280,8 +301,10 @@ export default function Home() {
                   </svg>
                   Processing...
                 </span>
+              ) : !session?.user ? (
+                '🔐 Sign in to Remove Background'
               ) : (
-                <span>✨ Remove Background</span>
+                '✨ Remove Background'
               )}
             </button>
             <p className="text-xs" style={{ color: 'rgba(130,130,160,0.5)' }}>Powered by Remove.bg API</p>

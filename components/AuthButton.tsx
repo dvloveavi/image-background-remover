@@ -21,7 +21,7 @@ export default function AuthButton() {
     return (
       <div className="flex items-center gap-2">
         {session.user.image ? (
-          <img src={session.user.image} alt="" className="w-7 h-7 rounded-full ring-1" style={{ ringColor: 'rgba(124,58,237,0.5)' }} />
+          <img src={session.user.image} alt="" className="w-7 h-7 rounded-full" style={{ border: '1px solid rgba(124,58,237,0.5)' }} />
         ) : (
           <div className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold"
             style={{ background: 'linear-gradient(135deg, #7c3aed, #2563eb)', color: '#fff' }}>
