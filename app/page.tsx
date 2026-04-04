@@ -1,7 +1,6 @@
 'use client';
 
 import Link from 'next/link';
-
 import { useState, useRef, useCallback } from 'react';
 import AuthButton from '@/components/AuthButton';
 
@@ -83,42 +82,116 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
-      <header className="py-6 px-4 border-b border-slate-700/50">
-        <div className="max-w-4xl mx-auto flex items-center justify-between">
-          <h1 className="text-2xl font-bold text-white">RemoveBG</h1>
-          <nav className="flex gap-4 items-center">
-            <Link href="/about" className="text-slate-400 hover:text-white transition">About</Link>
-            <Link href="/pricing" className="text-slate-400 hover:text-white transition">Pricing</Link>
-            <Link href="/profile" className="text-slate-400 hover:text-white transition">Profile</Link>
-            <Link href="/privacy" className="text-slate-400 hover:text-white transition">Privacy</Link>
-            <AuthButton />
+    <div className="min-h-screen" style={{ background: 'linear-gradient(135deg, #0a0a0f 0%, #0f0a1e 40%, #0a0f1e 70%, #0a0a0f 100%)' }}>
+      {/* Ambient background orbs */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute -top-40 -left-40 w-96 h-96 rounded-full opacity-20" style={{ background: 'radial-gradient(circle, #7c3aed, transparent 70%)' }} />
+        <div className="absolute -top-20 right-20 w-80 h-80 rounded-full opacity-15" style={{ background: 'radial-gradient(circle, #2563eb, transparent 70%)' }} />
+        <div className="absolute bottom-20 -right-20 w-96 h-96 rounded-full opacity-10" style={{ background: 'radial-gradient(circle, #059669, transparent 70%)' }} />
+      </div>
+
+      {/* Header */}
+      <header className="relative z-10 py-4 px-6 border-b" style={{ borderColor: 'rgba(255,255,255,0.06)', backdropFilter: 'blur(12px)', background: 'rgba(10,10,15,0.6)' }}>
+        <div className="max-w-5xl mx-auto flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold" style={{ background: 'linear-gradient(135deg, #7c3aed, #2563eb)' }}>
+              ✂️
+            </div>
+            <span className="text-lg font-bold text-white">RemoveBG</span>
+          </div>
+          <nav className="flex gap-1 items-center">
+            {[
+              { href: '/about', label: 'About' },
+              { href: '/pricing', label: 'Pricing' },
+              { href: '/profile', label: 'Profile' },
+              { href: '/privacy', label: 'Privacy' },
+            ].map(({ href, label }) => (
+              <Link
+                key={href}
+                href={href}
+                className="px-3 py-1.5 rounded-lg text-sm transition-all"
+                style={{ color: 'rgba(200,200,220,0.7)' }}
+                onMouseEnter={e => { (e.target as HTMLElement).style.color = '#fff'; (e.target as HTMLElement).style.background = 'rgba(255,255,255,0.07)'; }}
+                onMouseLeave={e => { (e.target as HTMLElement).style.color = 'rgba(200,200,220,0.7)'; (e.target as HTMLElement).style.background = 'transparent'; }}
+              >
+                {label}
+              </Link>
+            ))}
+            <div className="ml-2">
+              <AuthButton />
+            </div>
           </nav>
         </div>
       </header>
 
-      <main className="max-w-4xl mx-auto px-4 py-12">
-        <div className="text-center mb-10">
-          <h2 className="text-4xl font-bold text-white mb-3">Remove Image Background</h2>
-          <p className="text-slate-400">Upload an image and remove its background with one click</p>
+      <main className="relative z-10 max-w-5xl mx-auto px-4 py-16">
+        {/* Hero */}
+        <div className="text-center mb-14">
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium mb-6" style={{ background: 'rgba(124,58,237,0.15)', border: '1px solid rgba(124,58,237,0.3)', color: '#a78bfa' }}>
+            ✨ AI-Powered Background Removal
+          </div>
+          <h2 className="text-5xl font-extrabold mb-4 leading-tight">
+            <span className="text-white">Remove </span>
+            <span className="gradient-text">Any Background</span>
+            <br />
+            <span className="text-white">Instantly</span>
+          </h2>
+          <p className="text-lg max-w-md mx-auto" style={{ color: 'rgba(180,180,210,0.75)' }}>
+            Upload your image and get a clean, transparent background in seconds — no design skills needed.
+          </p>
+
+          {/* Stats row */}
+          {!image && (
+            <div className="flex justify-center gap-8 mt-8">
+              {[
+                { value: '100%', label: 'Accurate' },
+                { value: '<5s', label: 'Processing' },
+                { value: 'Free', label: 'To Start' },
+              ].map(({ value, label }) => (
+                <div key={label} className="text-center">
+                  <div className="text-2xl font-bold text-white">{value}</div>
+                  <div className="text-xs mt-0.5" style={{ color: 'rgba(160,160,190,0.6)' }}>{label}</div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
+        {/* Upload / Result area */}
         {!image ? (
           <div
             onDrop={handleDrop}
             onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
             onDragLeave={() => setDragOver(false)}
             onClick={() => fileInputRef.current?.click()}
-            className={`border-2 border-dashed rounded-2xl p-16 text-center cursor-pointer transition-all ${
-              dragOver 
-                ? 'border-blue-500 bg-blue-500/10' 
-                : 'border-slate-600 hover:border-slate-500 hover:bg-slate-800/50'
-            }`}
+            className="cursor-pointer rounded-3xl p-16 text-center transition-all relative overflow-hidden"
+            style={{
+              border: dragOver ? '2px dashed #7c3aed' : '2px dashed rgba(255,255,255,0.12)',
+              background: dragOver ? 'rgba(124,58,237,0.08)' : 'rgba(255,255,255,0.02)',
+              boxShadow: dragOver ? '0 0 40px rgba(124,58,237,0.2)' : 'none',
+            }}
           >
-            <div className="text-6xl mb-4">🖼️</div>
-            <p className="text-xl text-white mb-2">Drop your image here</p>
-            <p className="text-slate-400 text-sm">or click to browse</p>
-            <p className="text-slate-500 text-xs mt-4">Supports JPG, PNG, WebP (max 10MB)</p>
+            {/* Decorative corner dots */}
+            {['top-3 left-3', 'top-3 right-3', 'bottom-3 left-3', 'bottom-3 right-3'].map(pos => (
+              <div key={pos} className={`absolute ${pos} w-2 h-2 rounded-full`} style={{ background: dragOver ? '#7c3aed' : 'rgba(255,255,255,0.15)' }} />
+            ))}
+
+            <div className="relative">
+              <div className="w-20 h-20 mx-auto mb-5 rounded-2xl flex items-center justify-center text-4xl"
+                style={{ background: 'linear-gradient(135deg, rgba(124,58,237,0.2), rgba(37,99,235,0.2))', border: '1px solid rgba(124,58,237,0.3)' }}>
+                🖼️
+              </div>
+              <p className="text-xl font-semibold text-white mb-2">Drop your image here</p>
+              <p className="text-sm mb-6" style={{ color: 'rgba(160,160,190,0.6)' }}>or click to browse files</p>
+
+              <div className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-medium transition-all"
+                style={{ background: 'linear-gradient(135deg, #7c3aed, #2563eb)', color: '#fff', boxShadow: '0 4px 20px rgba(124,58,237,0.3)' }}>
+                Choose File
+              </div>
+
+              <p className="text-xs mt-5" style={{ color: 'rgba(130,130,160,0.5)' }}>Supports JPG, PNG, WebP · Max 10MB</p>
+            </div>
+
             <input
               ref={fileInputRef}
               type="file"
@@ -128,68 +201,119 @@ export default function Home() {
             />
           </div>
         ) : (
-          <div className="grid md:grid-cols-2 gap-8">
-            <div className="bg-slate-800/50 rounded-2xl p-4 border border-slate-700/50">
-              <div className="flex items-center justify-between mb-3">
-                <span className="text-sm text-slate-400">Original</span>
-                <button onClick={reset} className="text-sm text-red-400 hover:text-red-300 transition">
-                  Remove
+          <div className="grid md:grid-cols-2 gap-6">
+            {/* Original */}
+            <div className="rounded-2xl overflow-hidden" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)' }}>
+              <div className="flex items-center justify-between px-4 py-3" style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 rounded-full bg-yellow-400" />
+                  <span className="text-sm font-medium" style={{ color: 'rgba(200,200,220,0.8)' }}>Original</span>
+                </div>
+                <button
+                  onClick={reset}
+                  className="text-xs px-3 py-1 rounded-lg transition-all"
+                  style={{ color: '#f87171', background: 'rgba(248,113,113,0.1)', border: '1px solid rgba(248,113,113,0.2)' }}
+                >
+                  × Remove
                 </button>
               </div>
-              <div className="bg-slate-900 rounded-xl p-4 flex items-center justify-center min-h-64">
-                <img src={originalImage!} alt="Original" className="max-w-full max-h-80 object-contain" />
+              <div className="p-4 flex items-center justify-center min-h-64 rounded-b-2xl" style={{ background: 'rgba(0,0,0,0.2)' }}>
+                <img src={originalImage!} alt="Original" className="max-w-full max-h-72 object-contain rounded-lg" />
               </div>
             </div>
 
-            <div className="bg-slate-800/50 rounded-2xl p-4 border border-slate-700/50">
-              <div className="flex items-center justify-between mb-3">
-                <span className="text-sm text-slate-400">Result</span>
+            {/* Result */}
+            <div className="rounded-2xl overflow-hidden" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)' }}>
+              <div className="flex items-center justify-between px-4 py-3" style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 rounded-full bg-emerald-400" />
+                  <span className="text-sm font-medium" style={{ color: 'rgba(200,200,220,0.8)' }}>Result</span>
+                </div>
                 {image !== originalImage && (
-                  <button onClick={downloadResult} className="text-sm text-green-400 hover:text-green-300 transition">
-                    Download PNG
+                  <button
+                    onClick={downloadResult}
+                    className="text-xs px-3 py-1 rounded-lg transition-all font-medium"
+                    style={{ color: '#34d399', background: 'rgba(52,211,153,0.1)', border: '1px solid rgba(52,211,153,0.25)' }}
+                  >
+                    ↓ Download PNG
                   </button>
                 )}
               </div>
-              <div className="bg-slate-900 rounded-xl p-4 flex items-center justify-center min-h-64 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMCIgaGVpZ2h0PSIzMCI+PHJlY3QgZmlsbD0iI2MzYzRjNyIgd2lkdGg9IjMwIiBoZWlnaHQ9IjMwIi8+PHJlY3Qgdmlld0JveD0iMCAwIDMwIDMwIiBmaWxsPSIjY2IzYjViIiB3aWR0aD0iMzAiIGhlaWdodD0iMzAiLz48L3N2Zz4=')]">
-                <img src={image!} alt="Result" className="max-w-full max-h-80 object-contain" />
+              <div className="p-4 flex items-center justify-center min-h-64 rounded-b-2xl checkerboard">
+                <img src={image!} alt="Result" className="max-w-full max-h-72 object-contain rounded-lg" />
               </div>
             </div>
           </div>
         )}
 
+        {/* Error */}
         {error && (
-          <div className="mt-6 p-4 bg-red-500/10 border border-red-500/30 rounded-xl text-red-400 text-center">
-            {error}
+          <div className="mt-6 p-4 rounded-xl text-center text-sm"
+            style={{ background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)', color: '#f87171' }}>
+            ⚠️ {error}
           </div>
         )}
 
+        {/* Action button */}
         {image && (
-          <div className="mt-8 text-center">
+          <div className="mt-8 flex flex-col items-center gap-3">
             <button
               onClick={removeBackground}
               disabled={loading || image !== originalImage}
-              className="px-8 py-4 bg-blue-600 hover:bg-blue-500 disabled:bg-slate-600 disabled:cursor-not-allowed text-white font-semibold rounded-xl transition-all transform hover:scale-105 disabled:scale-100"
+              className="px-10 py-4 rounded-2xl text-base font-semibold text-white transition-all"
+              style={{
+                background: loading || image !== originalImage
+                  ? 'rgba(80,80,100,0.5)'
+                  : 'linear-gradient(135deg, #7c3aed 0%, #2563eb 100%)',
+                boxShadow: loading || image !== originalImage
+                  ? 'none'
+                  : '0 4px 30px rgba(124,58,237,0.4)',
+                cursor: loading || image !== originalImage ? 'not-allowed' : 'pointer',
+                transform: loading || image !== originalImage ? 'none' : undefined,
+              }}
             >
               {loading ? (
                 <span className="flex items-center gap-3">
-                  <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                  <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24" fill="none">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                   </svg>
                   Processing...
                 </span>
               ) : (
-                '✨ Remove Background'
+                <span>✨ Remove Background</span>
               )}
             </button>
-            <p className="text-slate-500 text-sm mt-3">Powered by Remove.bg API</p>
+            <p className="text-xs" style={{ color: 'rgba(130,130,160,0.5)' }}>Powered by Remove.bg API</p>
+          </div>
+        )}
+
+        {/* Features row */}
+        {!image && (
+          <div className="grid grid-cols-3 gap-4 mt-12">
+            {[
+              { icon: '⚡', title: 'Lightning Fast', desc: 'Results in under 5 seconds' },
+              { icon: '🎯', title: 'Pixel Perfect', desc: 'Clean edges, every time' },
+              { icon: '🔒', title: 'Private & Secure', desc: 'Images not stored' },
+            ].map(({ icon, title, desc }) => (
+              <div key={title} className="rounded-xl p-4 text-center" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)' }}>
+                <div className="text-2xl mb-2">{icon}</div>
+                <div className="text-sm font-semibold text-white mb-1">{title}</div>
+                <div className="text-xs" style={{ color: 'rgba(150,150,180,0.6)' }}>{desc}</div>
+              </div>
+            ))}
           </div>
         )}
       </main>
 
-      <footer className="py-6 px-4 border-t border-slate-700/50 mt-12">
-        <div className="max-w-4xl mx-auto text-center text-slate-500 text-sm">
-          © 2026 RemoveBG. All rights reserved.
+      {/* Footer */}
+      <footer className="relative z-10 mt-16 py-6 px-6" style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+        <div className="max-w-5xl mx-auto flex items-center justify-between">
+          <span className="text-sm" style={{ color: 'rgba(120,120,150,0.6)' }}>© 2026 RemoveBG. All rights reserved.</span>
+          <div className="flex gap-4 text-sm" style={{ color: 'rgba(120,120,150,0.6)' }}>
+            <Link href="/privacy" className="hover:text-white transition-colors">Privacy</Link>
+            <Link href="/about" className="hover:text-white transition-colors">About</Link>
+          </div>
         </div>
       </footer>
     </div>
