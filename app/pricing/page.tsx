@@ -113,7 +113,7 @@ export default function PricingPage() {
             {creditPackages.map((pkg) => (
               <div
                 key={pkg.id}
-                className="relative rounded-2xl p-6 flex flex-col transition-all"
+                className={`relative rounded-2xl p-6 flex flex-col transition-all ${pkg.popular ? 'mt-4' : ''}`}
                 style={{
                   background: pkg.popular
                     ? 'linear-gradient(160deg, rgba(124,58,237,0.12), rgba(37,99,235,0.08))'
