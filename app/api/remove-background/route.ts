@@ -72,10 +72,7 @@ export async function POST(req: Request) {
 
     // ── Return result ────────────────────────────────────────────────────────
     const arrayBuffer = await response.arrayBuffer();
-    const uint8Array = new Uint8Array(arrayBuffer);
-    let binary = '';
-    uint8Array.forEach(b => (binary += String.fromCharCode(b)));
-    const resultBase64 = btoa(binary);
+    const resultBase64 = btoa(new Uint8Array(arrayBuffer).reduce((data, byte) => data + String.fromCharCode(byte), ''));
 
     return new Response(
       JSON.stringify({
