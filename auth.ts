@@ -12,6 +12,21 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   pages: {
     signIn: '/',
   },
+  callbacks: {
+    session({ session, token }) {
+      // Expose user id (from JWT sub) to the session object
+      if (token?.sub) {
+        session.user.id = token.sub;
+      }
+      return session;
+    },
+    jwt({ token, user }) {
+      if (user?.id) {
+        token.sub = user.id;
+      }
+      return token;
+    },
+  },
   events: {
     async signIn({ user }) {
       // Store or update user in D1 when they sign in

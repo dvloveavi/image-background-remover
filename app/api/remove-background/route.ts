@@ -7,7 +7,8 @@ export async function POST(req: Request) {
   try {
     // ── Auth check ──────────────────────────────────────────────────────────
     const session = await auth();
-    if (!session?.user?.id) {
+    const userId = session?.user?.id || session?.user?.email;
+    if (!userId) {
       return new Response(JSON.stringify({ error: 'Unauthorized', code: 'AUTH_REQUIRED' }), {
         status: 401,
         headers: { 'Content-Type': 'application/json' },
@@ -15,7 +16,7 @@ export async function POST(req: Request) {
     }
 
     // ── Credits check ────────────────────────────────────────────────────────
-    const credits = await getUserCredits(session.user.id);
+    const credits = await getUserCredits(userId);
     if (credits.credits <= 0 && credits.preview_credits <= 0) {
       return new Response(
         JSON.stringify({ error: 'Insufficient credits', code: 'NO_CREDITS' }),
@@ -67,7 +68,7 @@ export async function POST(req: Request) {
     }
 
     // ── Deduct credit after successful processing ────────────────────────────
-    await deductCredit(session.user.id, creditType);
+    await deductCredit(userId, creditType);
 
     // ── Return result ────────────────────────────────────────────────────────
     const arrayBuffer = await response.arrayBuffer();
