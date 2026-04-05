@@ -23,11 +23,20 @@ export async function POST(req: Request) {
       );
     }
 
-    const { image } = await req.json();
     const apiKey = process.env.REMOVE_BG_API_KEY;
+    if (!apiKey) {
+      return new Response(JSON.stringify({ error: 'Server misconfiguration' }), {
+        status: 500,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
 
-    if (!image || !apiKey) {
-      return new Response(JSON.stringify({ error: 'Missing data' }), {
+    // ── Parse incoming FormData ──────────────────────────────────────────────
+    const incoming = await req.formData();
+    const imageFile = incoming.get('image_file') as File | null;
+
+    if (!imageFile) {
+      return new Response(JSON.stringify({ error: 'Missing image_file' }), {
         status: 400,
         headers: { 'Content-Type': 'application/json' },
       });
@@ -38,12 +47,8 @@ export async function POST(req: Request) {
     const creditType = useHD ? 'hd' : 'preview';
 
     // ── Call Remove.bg API ───────────────────────────────────────────────────
-    const base64Data = image.includes(',') ? image.split(',')[1] : image;
-    const byteCharacters = Uint8Array.from(atob(base64Data), c => c.charCodeAt(0));
-    const imageBlob = new Blob([byteCharacters], { type: 'image/png' });
-
     const formData = new FormData();
-    formData.append('image_file', imageBlob, 'image.png');
+    formData.append('image_file', imageFile);
     formData.append('size', useHD ? 'auto' : 'preview');
 
     const response = await fetch('https://api.remove.bg/v1.0/removebg', {

@@ -15,6 +15,7 @@ export default function Home() {
   const [dragOver, setDragOver] = useState(false);
   const [creditsRemaining, setCreditsRemaining] = useState<number | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const originalFileRef = useRef<File | null>(null);
 
   const handleFile = useCallback((file: File) => {
     if (!file.type.startsWith('image/')) {
@@ -29,6 +30,7 @@ export default function Home() {
     }
     setError(null);
     setErrorCode(null);
+    originalFileRef.current = file;
     const reader = new FileReader();
     reader.onload = (e) => {
       const result = e.target?.result as string;
@@ -51,7 +53,7 @@ export default function Home() {
   }, [handleFile]);
 
   const removeBackground = async () => {
-    if (!originalImage) return;
+    if (!originalImage || !originalFileRef.current) return;
 
     // Prompt login if not authenticated
     if (!session?.user) {
@@ -63,10 +65,12 @@ export default function Home() {
     setError(null);
     setErrorCode(null);
     try {
+      const formData = new FormData();
+      formData.append('image_file', originalFileRef.current);
+
       const response = await fetch('/api/remove-background', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ image: originalImage }),
+        body: formData,
       });
 
       const data = await response.json();
