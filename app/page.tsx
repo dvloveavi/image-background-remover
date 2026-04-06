@@ -249,7 +249,7 @@ export default function Home() {
                 )}
               </div>
               <div className="p-4 flex items-center justify-center min-h-64 checkerboard">
-                <img src={image!} alt="Result" className="max-w-full max-h-72 object-contain rounded-lg" />
+                <img src={image!} alt="Result" className="max-w-full max-h-72 object-contain rounded-lg" style={{ margin: '0 auto' }} />
               </div>
             </div>
           </div>
